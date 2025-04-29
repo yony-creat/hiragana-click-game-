@@ -4,14 +4,18 @@
   <meta charset="UTF-8">
   <title>Hiragana Click Game</title>
   <style>
-    body { font-family: sans-serif; text-align: center; padding: 20px; }
+    body { font-family: sans-serif; text-align: center; padding: 20px; background-color: #e0f7fa; color: #333; }
     #info { margin-bottom: 10px; font-size: 18px; }
-    #game-board { display: grid; grid-gap: 10px; justify-content: center; }
-    .tile { width: 60px; height: 60px; background: #f2f2f2; border: 2px solid #ccc;
+    #result { margin: 15px 0; font-size: 20px; font-weight: bold; color: #d32f2f; }
+    #game-board { display: grid; grid-gap: 12px; justify-content: center; }
+    .tile { width: 80px; height: 80px; background: #ffffff; border: 2px solid #90a4ae;
             display: flex; align-items: center; justify-content: center;
-            font-size: 24px; cursor: pointer; user-select: none; }
+            font-size: 32px; cursor: pointer; user-select: none; border-radius: 8px; }
     .hidden { visibility: hidden; }
-    #start-btn { margin-top: 15px; padding: 8px 16px; font-size: 16px; }
+    #start-btn { margin-top: 15px; padding: 10px 20px; font-size: 18px; }
+    @media (max-width: 600px) {
+      .tile { width: 60px; height: 60px; font-size: 24px; }
+    }
   </style>
 </head>
 <body>
@@ -21,6 +25,7 @@
     | Next: <span id="next-char"></span>
     | Time: <span id="timer">0</span>s
   </div>
+  <div id="result"></div>
   <div id="game-board"></div>
   <button id="start-btn">게임 시작</button>
 
@@ -38,18 +43,20 @@
       "わ","を","ん"
     ];
     const maxStage = 10;
-    const timeLimit = 30; // seconds
+    const timeLimit = 30; // seconds per stage
     let currentStage = 1;
     let sequence = [];
     let targetIndex = 0;
+    let startTime = 0;
     let timeRemaining;
     let timerInterval;
 
-    const stageEl     = document.getElementById("stage");
-    const nextCharEl  = document.getElementById("next-char");
-    const timerEl     = document.getElementById("timer");
-    const boardEl     = document.getElementById("game-board");
-    const startBtn    = document.getElementById("start-btn");
+    const stageEl    = document.getElementById("stage");
+    const nextCharEl = document.getElementById("next-char");
+    const timerEl    = document.getElementById("timer");
+    const resultEl   = document.getElementById("result");
+    const boardEl    = document.getElementById("game-board");
+    const startBtn   = document.getElementById("start-btn");
 
     function shuffle(array) {
       return array.sort(() => Math.random() - 0.5);
@@ -64,15 +71,33 @@
         timerEl.textContent = timeRemaining;
         if (timeRemaining <= 0) {
           clearInterval(timerInterval);
-          alert('시간 초과! 게임 오버...');
-          location.reload();
+          showResult(false);
         }
       }, 1000);
     }
 
+    function showResult(completed) {
+      const elapsed = Math.round((Date.now() - startTime) / 1000);
+      if (completed) {
+        resultEl.style.color = '#388e3c';
+        resultEl.textContent = `축하합니다! 모든 단계 완료! ${elapsed}초 소요`.replace(/:/g, '');
+      } else {
+        resultEl.style.color = '#d32f2f';
+        resultEl.textContent = `Game Over! Stage ${currentStage} 성공. ${elapsed}초 소요`;
+      }
+      // Disable further clicks
+      const tiles = document.querySelectorAll('.tile');
+      tiles.forEach(t => t.style.pointerEvents = 'none');
+    }
+
     function startStage(stage) {
+      if (stage === 1) {
+        startTime = Date.now();
+        resultEl.textContent = '';
+      }
       boardEl.innerHTML = "";
       startTimer();
+
       const count = Math.min(stage * 5, hiragana.length);
       sequence = hiragana.slice(0, count);
       targetIndex = 0;
@@ -81,7 +106,7 @@
 
       const shuffled = shuffle([...sequence]);
       const cols = Math.ceil(Math.sqrt(sequence.length));
-      boardEl.style.gridTemplateColumns = `repeat(${cols}, 60px)`;
+      boardEl.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
 
       shuffled.forEach(char => {
         const tile = document.createElement("div");
@@ -101,11 +126,10 @@
         } else {
           clearInterval(timerInterval);
           if (currentStage < maxStage) {
-            alert(`Stage ${currentStage} 완료! 다음 스테이지로 이동합니다.`);
             currentStage++;
             startStage(currentStage);
           } else {
-            alert("모든 단계 완료! 축하합니다!");
+            showResult(true);
           }
         }
       } else {
