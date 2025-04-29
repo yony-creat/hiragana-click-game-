@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Hiragana Click Game</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 20px; }
+    #info { margin-bottom: 10px; font-size: 18px; }
+    #game-board { display: grid; grid-gap: 10px; justify-content: center; }
+    .tile { width: 60px; height: 60px; background: #f2f2f2; border: 2px solid #ccc;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; cursor: pointer; user-select: none; }
+    .hidden { visibility: hidden; }
+    #start-btn { margin-top: 15px; padding: 8px 16px; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <h1>히라가나 클릭 게임</h1>
+  <div id="info">
+    Stage: <span id="stage">1</span>
+    | Next: <span id="next-char"></span>
+    | Time: <span id="timer">0</span>s
+  </div>
+  <div id="game-board"></div>
+  <button id="start-btn">게임 시작</button>
+
+  <script>
+    const hiragana = [
+      "あ","い","う","え","お",
+      "か","き","く","け","こ",
+      "さ","し","す","せ","そ",
+      "た","ち","つ","て","と",
+      "な","に","ぬ","ね","の",
+      "は","ひ","ふ","へ","ほ",
+      "ま","み","む","め","も",
+      "や","ゆ","よ",
+      "ら","り","る","れ","ろ",
+      "わ","を","ん"
+    ];
+    const maxStage = 10;
+    const timeLimit = 30; // seconds
+    let currentStage = 1;
+    let sequence = [];
+    let targetIndex = 0;
+    let timeRemaining;
+    let timerInterval;
+
+    const stageEl     = document.getElementById("stage");
+    const nextCharEl  = document.getElementById("next-char");
+    const timerEl     = document.getElementById("timer");
+    const boardEl     = document.getElementById("game-board");
+    const startBtn    = document.getElementById("start-btn");
+
+    function shuffle(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      timeRemaining = timeLimit;
+      timerEl.textContent = timeRemaining;
+      timerInterval = setInterval(() => {
+        timeRemaining--;
+        timerEl.textContent = timeRemaining;
+        if (timeRemaining <= 0) {
+          clearInterval(timerInterval);
+          alert('시간 초과! 게임 오버...');
+          location.reload();
+        }
+      }, 1000);
+    }
+
+    function startStage(stage) {
+      boardEl.innerHTML = "";
+      startTimer();
+      const count = Math.min(stage * 5, hiragana.length);
+      sequence = hiragana.slice(0, count);
+      targetIndex = 0;
+      stageEl.textContent = stage;
+      nextCharEl.textContent = sequence[targetIndex];
+
+      const shuffled = shuffle([...sequence]);
+      const cols = Math.ceil(Math.sqrt(sequence.length));
+      boardEl.style.gridTemplateColumns = `repeat(${cols}, 60px)`;
+
+      shuffled.forEach(char => {
+        const tile = document.createElement("div");
+        tile.className = "tile";
+        tile.textContent = char;
+        tile.addEventListener("click", () => handleClick(tile, char));
+        boardEl.appendChild(tile);
+      });
+    }
+
+    function handleClick(tile, char) {
+      if (char === sequence[targetIndex]) {
+        tile.classList.add("hidden");
+        targetIndex++;
+        if (targetIndex < sequence.length) {
+          nextCharEl.textContent = sequence[targetIndex];
+        } else {
+          clearInterval(timerInterval);
+          if (currentStage < maxStage) {
+            alert(`Stage ${currentStage} 완료! 다음 스테이지로 이동합니다.`);
+            currentStage++;
+            startStage(currentStage);
+          } else {
+            alert("모든 단계 완료! 축하합니다!");
+          }
+        }
+      } else {
+        alert("순서를 확인하세요!");
+      }
+    }
+
+    startBtn.addEventListener("click", () => startStage(currentStage));
+  </script>
+</body>
+</html>
