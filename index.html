@@ -2,55 +2,46 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Hiragana Click Game</title>
+  <title>히라가나 클릭 게임</title>
   <style>
     body { font-family: sans-serif; text-align: center; padding: 20px; background-color: #e0f7fa; color: #333; }
     #info { margin-bottom: 5px; font-size: 18px; }
     #result { margin: 10px 0; font-size: 15px; font-weight: bold; color: #d32f2f; }
     #game-board { display: grid; grid-gap: 0; justify-content: center; }
-    .tile { width: 60px; height: 60px; background: #ffffff; border: 2px solid #90a4ae;
+    .tile { width: 60px; height: 60px; background: #fff; border: 2px solid #90a4ae;
             display: flex; align-items: center; justify-content: center;
             font-size: 32px; cursor: pointer; user-select: none; border-radius: 8px; }
     .hidden { visibility: hidden; }
-    #start-btn { margin-top: 15px; padding: 10px 10px; font-size: 18px; }
-    @media (max-width: 600px) {
-      .tile { width: 60px; height: 60px; font-size: 24px; }
-    }
+    #start-btn { margin-top: 15px; padding: 10px; font-size: 18px; }
   </style>
 </head>
 <body>
   <h1>히라가나게임</h1>
   <div id="info">
-    Stage: <span id="stage">1</span>
-    | Next: <span id="next-char"></span>
-    | Time: <span id="timer">0</span>s
+    Stage: <span id="stage">1</span> |
+    Next: <span id="next-char"></span> |
+    Time: <span id="timer">0</span>초
   </div>
   <div id="result"></div>
   <div id="game-board"></div>
-  <button id="start-btn">다시시작</button>
+  <button id="start-btn">시작</button>
 
   <script>
-    const hiragana = [
-      "あ","い","う","え","お",
-      "か","き","く","け","こ",
-      "さ","し","す","せ","そ",
-      "た","ち","つ","て","と",
-      "な","に","ぬ","ね","の",
-      "は","ひ","ふ","へ","ほ",
-      "ま","み","む","め","も",
-      "や","ゆ","よ",
-      "ら","り","る","れ","ろ",
-      "わ","を","ん"
-    ];
+    // --- 변수 선언 ---
+    const hiragana = ["あ","い","う","え","お","か","き","く","け","こ",
+                      "さ","し","す","せ","そ","た","ち","つ","て","と",
+                      "な","に","ぬ","ね","の","は","ひ","ふ","へ","ほ",
+                      "ま","み","む","め","も","や","ゆ","よ","ら","り",
+                      "る","れ","ろ","わ","を","ん"];
     const maxStage = 10;
-    const timeLimit = 30; // seconds per stage
+    const timeLimit = 30; 
     let currentStage = 1;
     let sequence = [];
     let targetIndex = 0;
     let startTime = 0;
-    let timeRemaining;
-    let timerInterval;
+    let timeRemaining, timerInterval;
 
+    // --- DOM 요소 ---
     const stageEl    = document.getElementById("stage");
     const nextCharEl = document.getElementById("next-char");
     const timerEl    = document.getElementById("timer");
@@ -58,8 +49,9 @@
     const boardEl    = document.getElementById("game-board");
     const startBtn   = document.getElementById("start-btn");
 
-    function shuffle(array) {
-      return array.sort(() => Math.random() - 0.5);
+    // --- 유틸 함수 ---
+    function shuffle(arr) {
+      return arr.sort(() => Math.random() - 0.5);
     }
 
     function startTimer() {
@@ -67,12 +59,11 @@
       timeRemaining = timeLimit;
       timerEl.textContent = timeRemaining;
       timerInterval = setInterval(() => {
-        timeRemaining--;
-        timerEl.textContent = timeRemaining;
-        if (timeRemaining <= 0) {
+        if (--timeRemaining <= 0) {
           clearInterval(timerInterval);
           showResult(false);
         }
+        timerEl.textContent = timeRemaining;
       }, 1000);
     }
 
@@ -80,33 +71,28 @@
       const elapsed = Math.round((Date.now() - startTime) / 1000);
       if (completed) {
         resultEl.style.color = '#388e3c';
-        resultEl.textContent = `축하합니다! 모든 단계 완료! ${elapsed}초 소요`.replace(/:/g, '');
+        resultEl.textContent = `축하합니다! 모든 단계 완료! ${elapsed}초 소요`;
       } else {
         resultEl.style.color = '#d32f2f';
-        resultEl.textContent = `Game Over! Stage ${currentStage} 성공. ${elapsed}초 소요`;
+        resultEl.textContent = `${currentStage}단계 성공. ${elapsed}초 소요`;
       }
-      // Disable further clicks
-      const tiles = document.querySelectorAll('.tile');
-      tiles.forEach(t => t.style.pointerEvents = 'none');
+      document.querySelectorAll('.tile')
+              .forEach(t => t.style.pointerEvents = 'none');
     }
 
     function startStage(stage) {
-      if (stage === 1) {
-        startTime = Date.now();
-        resultEl.textContent = '';
-      }
+      if (stage === 1) startTime = Date.now();
+      resultEl.textContent = "";
       boardEl.innerHTML = "";
       startTimer();
-
-      const count = Math.min(stage * 5, hiragana.length);
-      sequence = hiragana.slice(0, count);
+      sequence = hiragana.slice(0, Math.min(stage * 5, hiragana.length));
       targetIndex = 0;
       stageEl.textContent = stage;
       nextCharEl.textContent = sequence[targetIndex];
 
       const shuffled = shuffle([...sequence]);
       const cols = Math.ceil(Math.sqrt(sequence.length));
-      boardEl.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      boardEl.style.gridTemplateColumns = `repeat(${cols}, 60px)`;
 
       shuffled.forEach(char => {
         const tile = document.createElement("div");
@@ -120,8 +106,7 @@
     function handleClick(tile, char) {
       if (char === sequence[targetIndex]) {
         tile.classList.add("hidden");
-        targetIndex++;
-        if (targetIndex < sequence.length) {
+        if (++targetIndex < sequence.length) {
           nextCharEl.textContent = sequence[targetIndex];
         } else {
           clearInterval(timerInterval);
@@ -137,7 +122,13 @@
       }
     }
 
-    startBtn.addEventListener("click", () => startStage(currentStage));
+    // --- 버튼 클릭 핸들러 (한 번만 선언) ---
+    startBtn.addEventListener("click", () => {
+      if (startBtn.textContent === "시작") {
+        startBtn.textContent = "다시 시작";
+      }
+      startStage(currentStage);
+    });
   </script>
 </body>
 </html>
