@@ -103,24 +103,35 @@
       });
     }
 
-    function handleClick(tile, char) {
-      if (char === sequence[targetIndex]) {
-        tile.classList.add("hidden");
-        if (++targetIndex < sequence.length) {
-          nextCharEl.textContent = sequence[targetIndex];
-        } else {
-          clearInterval(timerInterval);
-          if (currentStage < maxStage) {
-            currentStage++;
-            startStage(currentStage);
-          } else {
-            showResult(true);
-          }
+function handleClick(tile, char) {
+  if (char === sequence[targetIndex]) {
+    tile.classList.add("hidden");
+    targetIndex++;
+
+    if (targetIndex < sequence.length) {
+      // 아직 남은 글자가 있을 때
+      nextCharEl.textContent = sequence[targetIndex];
+    } else {
+      // 이번 스테이지 클리어
+      clearInterval(timerInterval);
+      if (currentStage < maxStage) {
+        // 다음 스테이지가 있을 때
+        const ok = confirm(`Stage ${currentStage} 성공! 다음 스테이지로 이동합니다.`);
+        if (ok) {
+          currentStage++;
+          startStage(currentStage);
         }
+        // else 누르면 그냥 현재 결과 화면(빈 보드) 그대로 머뭅니다
       } else {
-        alert("순서를 확인하세요!");
+        // 마지막 스테이지까지 완료했을 때
+        showResult(true);
       }
     }
+  } else {
+    alert("순서를 확인하세요!");
+  }
+}
+
 
     // --- 버튼 클릭 핸들러 (한 번만 선언) ---
     startBtn.addEventListener("click", () => {
