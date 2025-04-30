@@ -7,7 +7,7 @@
     body { font-family: sans-serif; text-align: center; padding: 20px; background-color: #e0f7fa; color: #333; }
     #info { margin-bottom: 5px; font-size: 18px; }
     #result { margin: 10px 0; font-size: 15px; font-weight: bold; color: #d32f2f; }
-    #game-board { display: grid; grid-gap: 0; justify-content: center; }
+    #game-board { display: grid; gap: 0; justify-content: center; }
     .tile { width: 60px; height: 60px; background: #fff; border: 2px solid #90a4ae;
             display: flex; align-items: center; justify-content: center;
             font-size: 32px; cursor: pointer; user-select: none; border-radius: 8px; }
@@ -54,9 +54,10 @@
       return arr.sort(() => Math.random() - 0.5);
     }
 
-    function startTimer() {
+    // 수정된 startTimer: 1~3단계는 30초, 4단계부터는 50초
+    function startTimer(stage) {
       clearInterval(timerInterval);
-      timeRemaining = timeLimit;
+      timeRemaining = (stage >= 4) ? 50 : timeLimit;
       timerEl.textContent = timeRemaining;
       timerInterval = setInterval(() => {
         if (--timeRemaining <= 0) {
@@ -84,7 +85,10 @@
       if (stage === 1) startTime = Date.now();
       resultEl.textContent = "";
       boardEl.innerHTML = "";
-      startTimer();
+
+      // stage 값을 startTimer에 넘겨 줍니다
+      startTimer(stage);
+
       sequence = hiragana.slice(0, Math.min(stage * 5, hiragana.length));
       targetIndex = 0;
       stageEl.textContent = stage;
@@ -103,43 +107,16 @@
       });
     }
 
-function handleClick(tile, char) {
-  if (char === sequence[targetIndex]) {
-    tile.classList.add("hidden");
-    targetIndex++;
-
-    if (targetIndex < sequence.length) {
-      // 아직 남은 글자가 있을 때
-      nextCharEl.textContent = sequence[targetIndex];
-    } else {
-      // 이번 스테이지 클리어
-      clearInterval(timerInterval);
-      if (currentStage < maxStage) {
-        // 다음 스테이지가 있을 때
-        const ok = confirm(`Stage ${currentStage} 성공! 다음 스테이지로 이동합니다.`);
-        if (ok) {
-          currentStage++;
-          startStage(currentStage);
-        }
-        // else 누르면 그냥 현재 결과 화면(빈 보드) 그대로 머뭅니다
-      } else {
-        // 마지막 스테이지까지 완료했을 때
-        showResult(true);
-      }
-    }
-  } else {
-    alert("순서를 확인하세요!");
-  }
-}
-
-
-    // --- 버튼 클릭 핸들러 (한 번만 선언) ---
-    startBtn.addEventListener("click", () => {
-      if (startBtn.textContent === "시작") {
-        startBtn.textContent = "다시 시작";
-      }
-      startStage(currentStage);
-    });
-  </script>
-</body>
-</html>
+    function handleClick(tile, char) {
+      if (char === sequence[targetIndex]) {
+        tile.classList.add("hidden");
+        targetIndex++;
+        if (targetIndex < sequence.length) {
+          nextCharEl.textContent = sequence[targetIndex];
+        } else {
+          clearInterval(timerInterval);
+          if (currentStage < maxStage) {
+            const ok = confirm(`Stage ${currentStage} 성공! 다음 스테이지로 이동합니다.`);
+            if (ok) {
+              currentStage++;
+              startStage(currentStage
