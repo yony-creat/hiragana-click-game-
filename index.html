@@ -54,7 +54,7 @@
       return arr.sort(() => Math.random() - 0.5);
     }
 
-    // 수정된 startTimer: 1~3단계는 30초, 4단계부터는 50초
+    // 1~3단계:30초, 4단계 이상:50초
     function startTimer(stage) {
       clearInterval(timerInterval);
       timeRemaining = (stage >= 4) ? 50 : timeLimit;
@@ -85,10 +85,7 @@
       if (stage === 1) startTime = Date.now();
       resultEl.textContent = "";
       boardEl.innerHTML = "";
-
-      // stage 값을 startTimer에 넘겨 줍니다
       startTimer(stage);
-
       sequence = hiragana.slice(0, Math.min(stage * 5, hiragana.length));
       targetIndex = 0;
       stageEl.textContent = stage;
@@ -119,4 +116,24 @@
             const ok = confirm(`Stage ${currentStage} 성공! 다음 스테이지로 이동합니다.`);
             if (ok) {
               currentStage++;
-              startStage(currentStage
+              startStage(currentStage);
+            }
+          } else {
+            showResult(true);
+          }
+        }
+      } else {
+        alert("순서를 확인하세요!");
+      }
+    }
+
+    // --- 버튼 클릭 핸들러 ---
+    startBtn.addEventListener("click", () => {
+      if (startBtn.textContent === "시작") {
+        startBtn.textContent = "다시 시작";
+      }
+      startStage(currentStage);
+    });
+  </script>
+</body>
+</html>
